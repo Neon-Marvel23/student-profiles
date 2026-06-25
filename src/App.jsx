@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 const LEVELS = ["100", "200", "300", "400", "500"];
 const DEPARTMENTS = [
@@ -181,10 +181,19 @@ function StudentDetail({ student, onClose, onEdit, onDelete }) {
 }
 
 export default function App() {
-  const [students,setStudents] = useState([]);
+  const [students,setStudents] = useState(()=>{
+    try {
+      const saved = localStorage.getItem("csc413_students");
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
   const [search,setSearch] = useState("");
   const [modal,setModal] = useState(null);
   const [selected,setSelected] = useState(null);
+
+  useEffect(()=>{
+    localStorage.setItem("csc413_students", JSON.stringify(students));
+  },[students]);
 
   const filtered = useMemo(()=>{
     const q=search.toLowerCase();
@@ -211,8 +220,6 @@ export default function App() {
   return (
     <div style={{minHeight:"100vh",background:"#f1f0f7",
       fontFamily:"'Inter',-apple-system,sans-serif",maxWidth:480,margin:"0 auto"}}>
-
-      {/* HEADER CARD */}
       <div style={{background:"linear-gradient(160deg,#3730a3 0%,#4338ca 40%,#6d28d9 100%)",
         borderRadius:"0 0 28px 28px",padding:"48px 20px 28px"}}>
         <div style={{fontSize:12,fontWeight:700,color:"rgba(255,255,255,0.6)",
@@ -225,8 +232,6 @@ export default function App() {
             cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",
             backdropFilter:"blur(8px)"}}>+</button>
         </div>
-
-        {/* STATS */}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginTop:24}}>
           {[[students.length,"STUDENTS"],[depts,"DEPTS"],[levels,"LEVELS"]].map(([val,label])=>(
             <div key={label} style={{background:"rgba(255,255,255,0.12)",borderRadius:14,
@@ -237,27 +242,20 @@ export default function App() {
             </div>
           ))}
         </div>
-
-        {/* SEARCH — fixed text & placeholder color */}
         <div style={{marginTop:16,position:"relative"}}>
           <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",
             fontSize:16,color:"rgba(255,255,255,0.7)"}}>🔍</span>
           <input value={search} onChange={e=>setSearch(e.target.value)}
             placeholder="Search name, matric, department..."
-            style={{
-              width:"100%",padding:"13px 14px 13px 40px",
-              borderRadius:14,border:"2px solid rgba(255,255,255,0.3)",
-              background:"rgba(255,255,255,0.15)",
-              color:"#fff",
+            style={{width:"100%",padding:"13px 14px 13px 40px",borderRadius:14,
+              border:"2px solid rgba(255,255,255,0.3)",
+              background:"rgba(255,255,255,0.15)",color:"#fff",
               fontSize:14,outline:"none",boxSizing:"border-box",
-              backdropFilter:"blur(8px)",
-              WebkitTextFillColor:"#fff",
-            }}/>
-          <style>{`input::placeholder{color:rgba(255,255,255,0.6);}`}</style>
+              backdropFilter:"blur(8px)",WebkitTextFillColor:"#fff"}}/>
+          <style>{`input[type=text]::placeholder,input:not([type])::placeholder{color:rgba(255,255,255,0.7)!important;}`}</style>
         </div>
       </div>
 
-      {/* STUDENT LIST */}
       <div style={{padding:"20px 16px"}}>
         {filtered.length===0?(
           <div style={{textAlign:"center",padding:"60px 20px"}}>
@@ -295,7 +293,6 @@ export default function App() {
         )}
       </div>
 
-      {/* MODALS */}
       {modal==="add"&&(
         <Modal title="Add Student" onClose={()=>setModal(null)}>
           <StudentForm onSave={addStudent} onCancel={()=>setModal(null)} submitLabel="Add Student"/>
@@ -314,5 +311,4 @@ export default function App() {
       )}
     </div>
   );
-                                     }
-                     
+                     }
