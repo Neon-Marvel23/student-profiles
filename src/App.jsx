@@ -9,7 +9,7 @@ const DEPARTMENTS = [
 
 const initialForm = {
   firstName:"",lastName:"",matric:"",department:"",
-  level:"",email:"",phone:"",gender:"",
+  level:"",email:"",phone:"",gender:"",dob:"",
 };
 
 function Avatar({ student, size = 44 }) {
@@ -37,7 +37,7 @@ function Modal({ title, onClose, children }) {
           <h2 style={{margin:0,fontSize:20,fontWeight:700,color:"#1e1b4b"}}>{title}</h2>
           <button onClick={onClose} style={{background:"#f3f4f6",border:"none",
             borderRadius:"50%",width:32,height:32,cursor:"pointer",fontSize:18,
-            display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
+            display:"flex",alignItems:"center",justifyContent:"center"}}>x</button>
         </div>
         {children}
       </div>
@@ -111,6 +111,7 @@ function StudentForm({ initial=initialForm, onSave, onCancel, submitLabel="Add S
         </div>
         <Select label="Gender" options={["Male","Female"]} value={form.gender} onChange={set("gender")}/>
       </div>
+      <Input label="Date of Birth" type="date" value={form.dob} onChange={set("dob")}/>
       <Input label="Email" type="email" value={form.email} onChange={set("email")} placeholder="e.g. student@delsu.edu.ng"/>
       <Input label="Phone" type="tel" value={form.phone} onChange={set("phone")} placeholder="e.g. 08012345678"/>
       <button onClick={()=>{if(validate())onSave(form);}} style={{width:"100%",padding:"14px",borderRadius:12,
@@ -125,6 +126,11 @@ function StudentForm({ initial=initialForm, onSave, onCancel, submitLabel="Add S
 
 function StudentDetail({ student, onClose, onEdit, onDelete }) {
   const [confirmDelete,setConfirmDelete] = useState(false);
+  const formatDob = dob => {
+    if(!dob) return "—";
+    const d = new Date(dob);
+    return d.toLocaleDateString("en-GB",{day:"2-digit",month:"long",year:"numeric"});
+  };
   return (
     <Modal title="Student Profile" onClose={onClose}>
       <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:20,
@@ -135,15 +141,20 @@ function StudentDetail({ student, onClose, onEdit, onDelete }) {
           <div style={{fontSize:13,color:"#6C63FF",fontWeight:600}}>{student.matric}</div>
         </div>
       </div>
-      {[["Department",student.department],["Level",student.level+" Level"],
-        ["Gender",student.gender||"—"],["Email",student.email||"—"],["Phone",student.phone||"—"]]
-        .map(([k,v])=>(
-          <div key={k} style={{display:"flex",justifyContent:"space-between",
-            padding:"10px 0",borderBottom:"1px solid #f3f4f6"}}>
-            <span style={{fontSize:13,color:"#9ca3af",fontWeight:600}}>{k}</span>
-            <span style={{fontSize:14,color:"#1e1b4b",fontWeight:500}}>{v}</span>
-          </div>
-        ))}
+      {[
+        ["Department",student.department],
+        ["Level",student.level+" Level"],
+        ["Gender",student.gender||"—"],
+        ["Date of Birth",formatDob(student.dob)],
+        ["Email",student.email||"—"],
+        ["Phone",student.phone||"—"],
+      ].map(([k,v])=>(
+        <div key={k} style={{display:"flex",justifyContent:"space-between",
+          padding:"10px 0",borderBottom:"1px solid #f3f4f6"}}>
+          <span style={{fontSize:13,color:"#9ca3af",fontWeight:600}}>{k}</span>
+          <span style={{fontSize:14,color:"#1e1b4b",fontWeight:500,textAlign:"right",maxWidth:"60%"}}>{v}</span>
+        </div>
+      ))}
       <div style={{display:"flex",gap:10,marginTop:20}}>
         <button onClick={onEdit} style={{flex:1,padding:"12px",borderRadius:12,
           background:"linear-gradient(135deg,#4F46E5,#6C63FF)",color:"#fff",
@@ -200,6 +211,8 @@ export default function App() {
   return (
     <div style={{minHeight:"100vh",background:"#f1f0f7",
       fontFamily:"'Inter',-apple-system,sans-serif",maxWidth:480,margin:"0 auto"}}>
+
+      {/* HEADER CARD */}
       <div style={{background:"linear-gradient(160deg,#3730a3 0%,#4338ca 40%,#6d28d9 100%)",
         borderRadius:"0 0 28px 28px",padding:"48px 20px 28px"}}>
         <div style={{fontSize:12,fontWeight:700,color:"rgba(255,255,255,0.6)",
@@ -212,6 +225,8 @@ export default function App() {
             cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",
             backdropFilter:"blur(8px)"}}>+</button>
         </div>
+
+        {/* STATS */}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginTop:24}}>
           {[[students.length,"STUDENTS"],[depts,"DEPTS"],[levels,"LEVELS"]].map(([val,label])=>(
             <div key={label} style={{background:"rgba(255,255,255,0.12)",borderRadius:14,
@@ -222,17 +237,27 @@ export default function App() {
             </div>
           ))}
         </div>
+
+        {/* SEARCH — fixed text & placeholder color */}
         <div style={{marginTop:16,position:"relative"}}>
           <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",
-            fontSize:16,color:"#9ca3af"}}>🔍</span>
+            fontSize:16,color:"rgba(255,255,255,0.7)"}}>🔍</span>
           <input value={search} onChange={e=>setSearch(e.target.value)}
             placeholder="Search name, matric, department..."
-            style={{width:"100%",padding:"13px 14px 13px 40px",borderRadius:14,border:"none",
-              background:"rgba(255,255,255,0.18)",color:"#fff",fontSize:14,outline:"none",
-              boxSizing:"border-box",backdropFilter:"blur(8px)"}}/>
+            style={{
+              width:"100%",padding:"13px 14px 13px 40px",
+              borderRadius:14,border:"2px solid rgba(255,255,255,0.3)",
+              background:"rgba(255,255,255,0.15)",
+              color:"#fff",
+              fontSize:14,outline:"none",boxSizing:"border-box",
+              backdropFilter:"blur(8px)",
+              WebkitTextFillColor:"#fff",
+            }}/>
+          <style>{`input::placeholder{color:rgba(255,255,255,0.6);}`}</style>
         </div>
       </div>
 
+      {/* STUDENT LIST */}
       <div style={{padding:"20px 16px"}}>
         {filtered.length===0?(
           <div style={{textAlign:"center",padding:"60px 20px"}}>
@@ -270,6 +295,7 @@ export default function App() {
         )}
       </div>
 
+      {/* MODALS */}
       {modal==="add"&&(
         <Modal title="Add Student" onClose={()=>setModal(null)}>
           <StudentForm onSave={addStudent} onCancel={()=>setModal(null)} submitLabel="Add Student"/>
@@ -288,4 +314,5 @@ export default function App() {
       )}
     </div>
   );
-    }
+                                     }
+                     
